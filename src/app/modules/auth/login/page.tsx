@@ -2,8 +2,48 @@
 
 import Image from 'next/image';
 import Button from '../../../../components/Button';
+import { FormEvent, useState } from 'react';
+import { registerUser, RegisterUserDto } from '@/lib/interface-user';
 
 export default function LoginPage() {
+
+   const [username, setUsername] = useState('');
+    const [userEmail, setUserEmail] = useState('');
+    const [userPassword, setUserPassword] = useState('');
+    const[userCpf, setUserCpf] = useState('');
+    const[userBirthdayDate, setUserBirthdayDate] = useState()
+    const[userRoleAtributed, setUserRoleAtributed] = useState('')
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+  
+    // const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    //   event.preventDefault();
+    //   setError(null);
+    //   setSuccess(null);
+    //   setIsLoading(true);
+  
+    //   if ( !userEmail || !userPassword){
+    //     setError("Email e senha são obrigatórios.");
+    //     setIsLoading(false);
+    //     return;
+    //   }
+  
+    //   const userData: RegisterUserDto = { username, userEmail, userPassword, userCpf, userBirthdayDate, userRoleAtributed };
+  
+    //   try {
+    //     const userForCreate = await registerUser(userData);
+    //     setSuccess(`User ${userForCreate.name} || ${userForCreate.email} created with success`);
+    //     setUsername('')
+    //     setUserEmail('')
+    //     setUserPassword('')
+    //   } catch (err: any) {
+    //     setError(err.message || 'Falha ao registrar. Tente novamente.');
+    //   } finally {
+    //     setIsLoading(false);
+    //   }
+    // }
+
   const handleLogin = () => {
     console.log('Login clicado!');
   };
@@ -64,6 +104,8 @@ export default function LoginPage() {
               </div>
 
               <div className="mt-[50px] flex justify-center">
+
+                {/* Botao para login */}
                 <Button
                   text="Entrar"
                   variant="primary"
