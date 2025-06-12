@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/site-header";
 
 import { OrgProvider } from "@/app/providers/OrgProvider";
 import { ThemeProvider } from "@/components/theme-provider";
+import { NewEntryProvider } from "@/app/providers/NewEntryProvider";
 
 
 export const metadata: Metadata = {
@@ -20,7 +21,6 @@ export default function BaseLayout({
 }) {
 
   return (
-
     <html>
       <link rel="icon" href="/favicon.svg" />
       <body className="w-screen h-screen">
@@ -28,13 +28,15 @@ export default function BaseLayout({
           <SidebarProvider>
             <AppSidebar variant="inset" />
             <SidebarInset>
+            <NewEntryProvider>
               <SiteHeader />
+            </NewEntryProvider>
               <div className="flex flex-1 flex-col">
                 <div className="@container/main flex flex-1 flex-col gap-2">
                   <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
                     <OrgProvider>
-                  {children}
-                </OrgProvider>
+                      {children}
+                    </OrgProvider>
                   </div>
                 </div>
               </div>

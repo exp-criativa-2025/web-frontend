@@ -22,7 +22,7 @@ export function middleware(req: NextRequest) {
         return NextResponse.next()
     }
 
-    const token = req.cookies.get('token')?.value
+    const token = req.cookies.get('treko_token')?.value
     if (!token) {
         // no token → redirect to login
         const loginUrl = req.nextUrl.clone()
@@ -36,8 +36,8 @@ export function middleware(req: NextRequest) {
         return NextResponse.next()
     } catch {
         // invalid/expired token → redirect
-        const loginUrl = req.nextUrl.clone()
         console.log("JWT inválido")
+        const loginUrl = req.nextUrl.clone()
         loginUrl.pathname = '/modules/auth/login'
         return NextResponse.redirect(loginUrl)
     }

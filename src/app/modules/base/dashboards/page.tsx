@@ -3,6 +3,7 @@
 import { ChartMetricInteractive } from "@/components/chart-metric-interactive";
 import { SectionCards } from "@/components/section-cards";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 export default function DashboardPage() {
   const retentionData = [
@@ -35,6 +36,10 @@ export default function DashboardPage() {
     }
     fetchTotalDonationsData();
   }, []);
+  
+  useEffect(() => {
+    toast.message("Bem vindo ao Treko!")
+  })
 
   return (
     <div className="flex flex-1 flex-col">
