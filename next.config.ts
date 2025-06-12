@@ -52,6 +52,14 @@ const nextConfig = {
         source: "/settings",
         destination: "/modules/base/settings",
       },
+      {
+        source: "/donationUser",
+        destination: "/modules/userDonation",
+      },
+      {
+        source: "/donationUser/:path*",
+        destination: "/modules/userDonation/:path*",
+      }
     ];
   },
 };
