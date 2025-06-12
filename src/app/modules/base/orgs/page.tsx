@@ -1,6 +1,7 @@
 /* eslint-disable @next/next/no-img-element */
 "use client"
 import { useOrg } from '@/app/providers/OrgProvider';
+import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -18,13 +19,13 @@ export default function Orgs() {
 	const [orgs, setOrgs] = useState<Array<TOrg> | null>(null);
 	const itemsPerPage = 8;
 
-	const { setCurrentOrg } = useOrg()
+	const { setCurrentOrg, setShowState, addButton } = useOrg()
 
-	// Calculate pagination
 	const totalItems = orgs?.length ?? 16;
 	const totalPages = Math.ceil(totalItems / itemsPerPage);
 	const startIndex = (currentPage - 1) * itemsPerPage;
 	const endIndex = startIndex + itemsPerPage;
+
 
 	const handlePageChange = (pageNumber: number) => {
 		setCurrentPage(pageNumber);
@@ -44,11 +45,22 @@ export default function Orgs() {
 		}] as TOrg[])
 	}, [])
 
+
+	useEffect(() => {
+		setShowState(true)
+	}, [setShowState])
+
+
 	if (!orgs) return <p>loading...</p>
 
 	return (
 		<>
 			<div className="flex flex-col items-center justify-evenly">
+				{addButton && (
+					<Button variant={"default"} onClick={() => console.log("implement")}>
+						Add
+					</Button>
+				)}
 				<div className="grid grid-cols-4 gap-4 p-6 w-full max-w-7xl ">
 					{
 						// Array.from({ length: 16 })
@@ -59,7 +71,7 @@ export default function Orgs() {
 									key={index}
 									href={`/orgs/${startIndex + index}`}
 									onClick={() => setCurrentOrg(org)}
-									className="block bg-white rounded-lg shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden "
+									className="block bg-white dark:bg-slate-900 rounded-lg shadow-md hover:shadow-lg dark:border-gray-200 border-gray-600 border transition-all duration-300 overflow-hidden "
 								>
 									<div className="h-40 overflow-hidden relative">
 										<img
@@ -69,9 +81,9 @@ export default function Orgs() {
 											className="object-cover"
 										/>
 									</div>
-									<div className="p-4">
+									<div className="p-4  border-0">
 										<h3 className="font-semibold text-lg mb-1">{org.name ?? `Organization ${startIndex + index + 1}`}</h3>
-										<p className="text-gray-600 text-sm">{org.description ?? "no description found"}</p>
+										<p className="text-gray-600 dark:text-gray-200 text-sm">{org.description ?? "no description found"}</p>
 									</div>
 								</Link>
 							))}
