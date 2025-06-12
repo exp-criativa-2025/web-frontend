@@ -1,39 +1,41 @@
 "use client";
 
 import Image from 'next/image';
-import Button from '../../../../components/Button';
+import { Button } from '@/components/ui/button';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
 
 export default function LoginPage() {
-  const [userEmail, setEmail] = useState<string>()
-  const [userPassword, setPassword] = useState<string>()
+  const [userEmail, setEmail] = useState<string>("")
+  const [userPassword, setPassword] = useState<string>("")
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   async function login() {
     setIsLoading(true)
 
-    const callJWTEndpoint = async () => {
-      const f = await fetch('/api/auth', {
-        method: "POST",
-        body: JSON.stringify({
-          username: userEmail
-        })
-      })
-      if (!f.ok) {
-        throw new Error(f.statusText)
-      }
-      const parsed = await f.json()
-      console.log(`Endpoint returned: ${parsed} `)
-      return parsed
-    }
-
     try {
-      const response = await callJWTEndpoint()
-      localStorage.set("treko_jwt", response)
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        credentials: "include",           // <-- send+receive cookie
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: userEmail }),
+      })
+
+      if (!res.ok) {
+        const err = await res.text()
+        throw new Error(err || res.statusText)
+      }
+
+      // parse JSON so we block until the Set-Cookie header is processed
+      await res.json()
+
+      // now the cookie should be set; navigate to dashboards
       router.push("/modules/base/dashboards")
+    } catch (err) {
+      console.error("Login error:", err)
+      alert(`Login failed: ${err.message}`)
     } finally {
       setIsLoading(false)
     }
@@ -101,11 +103,12 @@ export default function LoginPage() {
 
               <div className="mt-[50px] flex justify-center">
                 <Button
-                  text={isLoading ? "Entrando..." : "Entrar"}
-                  variant="primary"
                   onClick={login}
                   disabled={isLoading}
-                />
+                  className="w-full"
+                >
+                  {isLoading ? "Entrando..." : "Entrar"}
+                </Button>
               </div>
 
             </form>

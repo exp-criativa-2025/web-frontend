@@ -28,6 +28,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { Button } from "./ui/button"
+import { useRouter } from "next/navigation"
 
 export function NavUser({
   user,
@@ -39,7 +41,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
-
+  const router = useRouter()
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -83,24 +85,15 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <IconUserCircle />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconCreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <IconNotification />
-                Notifications
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
             <DropdownMenuItem>
-              <IconLogout />
-              Log out
+            <Button variant="ghost"
+              onClick={() => {
+                router.push("/modules/auth/login")
+              }}
+            >
+            <IconLogout />
+            Log out
+            </Button>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -1,48 +1,48 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import jwt from 'jsonwebtoken'
+import { jwtVerify } from 'jose'
 
-export function middleware(req: NextRequest) {
-    const { pathname } = req.nextUrl
+const PUBLIC_PATHS = [
+  /^\/_next\//,
+  // allow POST /api/auth and any subpaths like /api/auth/login
+  /^\/api\/auth($|\/)/,    
+  /^\/modules\/auth\/login$/,
+  /^\/modules\/auth\/signup$/,
+  /^\/$/,
+  /\.(.*)$/
+]
 
-    // Debug bypass 
-    if (process.env.NODE_ENV === 'development' ){
-        return NextResponse.next()
-    }
+export async function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl
 
-    if (
-        pathname.startsWith('/_next') ||
-        pathname.startsWith('/api/auth/login') ||
-        pathname.startsWith('/api/auth/signup') ||
-        pathname === '/modules/auth/login' ||
-        pathname === '/modules/auth/signup' ||
-        pathname === '/' ||
-        /\.(.*)$/.test(pathname)
-    ) {
-        return NextResponse.next()
-    }
+  if (PUBLIC_PATHS.some((r) => r.test(pathname))) {
+    return NextResponse.next()
+  }
 
-    const token = req.cookies.get('treko_token')?.value
-    if (!token) {
-        // no token → redirect to login
-        const loginUrl = req.nextUrl.clone()
-        loginUrl.pathname = '/modules/auth/login'
-        return NextResponse.redirect(loginUrl)
-    }
+  const token = req.cookies.get('treko_token')?.value
+  if (!token) {
+    const loginUrl = req.nextUrl.clone()
+    loginUrl.pathname = '/modules/auth/login'
+    return NextResponse.redirect(loginUrl)
+  }
 
-    try {
-        // verify JWT
-        jwt.verify(token, "TREKOOOO")
-        return NextResponse.next()
-    } catch {
-        // invalid/expired token → redirect
-        console.log("JWT inválido")
-        const loginUrl = req.nextUrl.clone()
-        loginUrl.pathname = '/modules/auth/login'
-        return NextResponse.redirect(loginUrl)
-    }
+  try {
+    console.log(process.env.JWT_SECRET)
+    // verify against your shared secret
+    await jwtVerify(
+      token,
+      new TextEncoder().encode(process.env.JWT_SECRET)
+    )
+    return NextResponse.next()
+  } catch (err) {
+    console.error(err)
+    // invalid/expired token → redirect
+    const loginUrl = req.nextUrl.clone()
+    loginUrl.pathname = '/modules/auth/login'
+    return NextResponse.redirect(loginUrl)
+  }
 }
 
 export const config = {
-    matcher: '/((?!api/auth/login|_next|static|favicon\\.ico).*)',
+  matcher: '/((?!api/auth/login|_next|static|favicon\\.ico).*)',
 }
