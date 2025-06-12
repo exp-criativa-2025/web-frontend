@@ -14,10 +14,26 @@ export default function LoginPage() {
 
   async function login() {
     setIsLoading(true)
-    
+
+    const callJWTEndpoint = async () => {
+      const f = await fetch('/api/auth', {
+        method: "POST",
+        body: JSON.stringify({
+          username: userEmail
+        })
+      })
+      if (!f.ok) {
+        throw new Error(f.statusText)
+      }
+      const parsed = await f.json()
+      console.log(`Endpoint returned: ${parsed} `)
+      return parsed
+    }
+
     try {
-        router.push("/modules/base/dashboards")
-        localStorage.set("treko_jwt", "test")
+      const response = await callJWTEndpoint()
+      localStorage.set("treko_jwt", response)
+      router.push("/modules/base/dashboards")
     } finally {
       setIsLoading(false)
     }
