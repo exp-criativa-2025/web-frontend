@@ -20,7 +20,7 @@ export default function CampaignsPages() {
   useEffect(() => {
     async function fetchCampaigns() {
       try {
-        const response = await fetch("http://localhost:8000/campaigns");
+        const response = await fetch("http://localhost/campaigns");
         if (!response.ok) throw new Error("Failed to fetch campaigns");
         const result = await response.json();
         setCampaigns(result.data);
