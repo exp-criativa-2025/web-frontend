@@ -35,7 +35,7 @@ export default function RepresentativesPage() {
   useEffect(() => {
     async function fetchRepresentatives() {
       try {
-        const response = await fetch("http://localhost:8000/representatives");
+        const response = await fetch("http://localhost/api/representatives");
 
         if (!response.ok) {
           throw new Error(`Erro HTTP! Status: ${response.status}`);
