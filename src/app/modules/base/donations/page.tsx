@@ -20,7 +20,7 @@ export default function DonationsPage() {
   useEffect(() => {
     async function fetchDonations() {
       try {
-        const response = await fetch("http://localhost:8000/api/donations");
+        const response = await fetch("http://localhost/api/donations");
 
         if (!response.ok) {
           throw new Error(`Erro HTTP! Status: ${response.status}`);

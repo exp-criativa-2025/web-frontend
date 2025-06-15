@@ -21,28 +21,23 @@ export default function BaseLayout({
 
   return (
 
-    <html>
-      <link rel="icon" href="/favicon.svg" />
-      <body className="w-screen h-screen">
-        <ThemeProvider>
-          <SidebarProvider>
-            <AppSidebar variant="inset" />
-            <SidebarInset>
-              <SiteHeader />
-              <div className="flex flex-1 flex-col">
-                <div className="@container/main flex flex-1 flex-col gap-2">
-                  <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
-                    <OrgProvider>
+    <ThemeProvider>
+      <SidebarProvider>
+        <AppSidebar variant="inset" />
+        <SidebarInset>
+          <SiteHeader />
+          <div className="flex flex-1 flex-col">
+            <div className="@container/main flex flex-1 flex-col gap-2">
+              <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+                <OrgProvider>
                   {children}
                 </OrgProvider>
-                  </div>
-                </div>
               </div>
-            </SidebarInset>
-          </SidebarProvider>
-        </ThemeProvider>
+            </div>
+          </div>
+        </SidebarInset>
+      </SidebarProvider>
+    </ThemeProvider>
 
-      </body>
-    </html>
   );
 }

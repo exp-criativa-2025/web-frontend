@@ -2,19 +2,8 @@
 
 import { ChartMetricInteractive } from "@/components/chart-metric-interactive";
 import { SectionCards } from "@/components/section-cards";
-import api from "@/lib/api";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
-  const router = useRouter();
-
-  useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-    if (!token) {
-      router.replace("/modules/auth/login");
-    }
-  }, []);
 
   const retentionData = [
     { date: "2025-04-29", retentionRate: 0.96 },
@@ -28,22 +17,6 @@ export default function DashboardPage() {
     { date: "2025-04-15", churnRate: 0.05 },
   ];
 
-  const [totalDonationsData, setTotalDonationsData] = useState([]);
-
-  useEffect(() => {
-    async function fetchTotalDonationsData() {
-      try {
-        const response = await api.get(
-          "http://localhost/api/donations/donationsDailyTotalsOnYear"
-        );
-
-        setTotalDonationsData(response.data);
-      } catch (error) {
-        console.error("Error fetching total donations data:", error);
-      }
-    }
-    fetchTotalDonationsData();
-  }, []);
 
   return (
     <div className="flex flex-1 flex-col">
@@ -53,7 +26,7 @@ export default function DashboardPage() {
           <div className="px-4 lg:px-6">
             <ChartMetricInteractive
               title="Total de Doações"
-              data={totalDonationsData}
+              data={retentionData}
               metricKey="total"
               label="Total de doações: "
               aggregation="sum"

@@ -24,33 +24,27 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Switch } from "@/components/ui/switch"
 import { Textarea } from "@/components/ui/textarea"
-import { 
-  User, 
-  Mail, 
-  Phone, 
-  MapPin, 
-  Calendar, 
-  Settings, 
-  Bell, 
-  Shield, 
+import {
+  User,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  Settings,
+  Bell,
+  Shield,
   Edit,
   Camera,
   Upload
 } from "lucide-react"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
+import { useUser } from "@/providers/UserProvider"
 
 export default function ProfilePage() {
+  const { user } = useUser()
   const [isEditing, setIsEditing] = useState(false)
-  const [userInfo, setUserInfo] = useState({
-    name: "João Silva",
-    email: "joao.silva@example.com",
-    phone: "(11) 99999-9999",
-    location: "São Paulo, SP",
-    bio: "Desenvolvedor apaixonado por tecnologia e doações sociais.",
-    joinDate: "Janeiro 2024",
-    avatar: "/placeholder-avatar.jpg"
-  })
-  
+  const [userInfo, setUserInfo] = useState({})
+
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleAvatarClick = () => {
@@ -58,6 +52,11 @@ export default function ProfilePage() {
       fileInputRef.current.click()
     }
   }
+
+  useEffect(() => {
+    console.log(user)
+    setUserInfo(user || {})
+  }, [user])
 
   const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -82,14 +81,14 @@ export default function ProfilePage() {
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center space-y-4 sm:flex-row sm:space-y-0 sm:space-x-6">
                   <div className="relative group">
-                    <Avatar 
+                    <Avatar
                       className={`h-24 w-24 ${isEditing ? 'cursor-pointer' : ''}`}
                       onClick={handleAvatarClick}
                     >
                       <AvatarImage src={userInfo.avatar} alt="Profile" />
                       <AvatarFallback className="text-lg">JS</AvatarFallback>
                     </Avatar>
-                    
+
                     {/* Hidden file input */}
                     <input
                       type="file"
@@ -98,17 +97,17 @@ export default function ProfilePage() {
                       accept="image/*"
                       className="hidden"
                     />
-                    
+
                     {/* Edit overlay when in edit mode */}
                     {isEditing && (
-                      <div 
+                      <div
                         className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                         onClick={handleAvatarClick}
                       >
                         <Upload className="h-6 w-6 text-white" />
                       </div>
                     )}
-                    
+
                     {/* Camera button - now shows different icon based on edit mode */}
                     <Button
                       size="sm"
@@ -120,7 +119,7 @@ export default function ProfilePage() {
                       {isEditing ? <Upload className="h-4 w-4" /> : <Camera className="h-4 w-4" />}
                     </Button>
                   </div>
-                  
+
                   <div className="flex-1 text-center sm:text-left">
                     <h1 className="text-2xl font-bold">{userInfo.name}</h1>
                     <p className="text-muted-foreground">{userInfo.email}</p>
@@ -134,8 +133,8 @@ export default function ProfilePage() {
                       </p>
                     )}
                   </div>
-                  
-                  <Button 
+
+                  <Button
                     onClick={() => setIsEditing(!isEditing)}
                     variant={isEditing ? "secondary" : "outline"}
                   >
@@ -172,7 +171,7 @@ export default function ProfilePage() {
                             id="name"
                             value={userInfo.name}
                             disabled={!isEditing}
-                            onChange={(e) => setUserInfo({...userInfo, name: e.target.value})}
+                            onChange={(e) => setUserInfo({ ...userInfo, name: e.target.value })}
                           />
                         </div>
                       </div>
@@ -185,7 +184,7 @@ export default function ProfilePage() {
                             type="email"
                             value={userInfo.email}
                             disabled={!isEditing}
-                            onChange={(e) => setUserInfo({...userInfo, email: e.target.value})}
+                            onChange={(e) => setUserInfo({ ...userInfo, email: e.target.value })}
                           />
                         </div>
                       </div>
@@ -197,7 +196,7 @@ export default function ProfilePage() {
                             id="phone"
                             value={userInfo.phone}
                             disabled={!isEditing}
-                            onChange={(e) => setUserInfo({...userInfo, phone: e.target.value})}
+                            onChange={(e) => setUserInfo({ ...userInfo, phone: e.target.value })}
                           />
                         </div>
                       </div>
@@ -209,7 +208,7 @@ export default function ProfilePage() {
                             id="location"
                             value={userInfo.location}
                             disabled={!isEditing}
-                            onChange={(e) => setUserInfo({...userInfo, location: e.target.value})}
+                            onChange={(e) => setUserInfo({ ...userInfo, location: e.target.value })}
                           />
                         </div>
                       </div>
@@ -221,7 +220,7 @@ export default function ProfilePage() {
                         placeholder="Fale um pouco sobre você..."
                         value={userInfo.bio}
                         disabled={!isEditing}
-                        onChange={(e) => setUserInfo({...userInfo, bio: e.target.value})}
+                        onChange={(e) => setUserInfo({ ...userInfo, bio: e.target.value })}
                       />
                     </div>
                     {isEditing && (

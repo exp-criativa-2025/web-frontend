@@ -4,33 +4,51 @@
 import Image from "next/image";
 import Button from "../../../../components/Button";
 import { useState } from "react";
-import axios from "axios";
 import { useRouter } from "next/navigation";
+import { useUser } from "@/providers/UserProvider";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
+  const { setUser } = useUser();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     try {
-      const response = await axios.post("http://localhost/api/login", {
-        email,
-        password,
+      const response = await fetch("http://localhost/api/login", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: email,
+          password: password,
+        }),
       });
 
-      const token = response.data.data.token;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Erro ao fazer login.");
+      }
 
-      localStorage.setItem("auth_token", token);
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      const { data } = await response.json();
+      console.log(data)
+
+      setUser({
+        id: data.id,
+        name: data.name,
+        email: data.email,
+        phone: data.phone,
+      });
 
       router.push("/dashboards");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Erro ao fazer login.");
+      setError(err.message || "Erro ao fazer login.");
     }
   };
 

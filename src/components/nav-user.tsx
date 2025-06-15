@@ -29,6 +29,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useRouter } from "next/navigation"
+import { useUser } from "@/providers/UserProvider"
 
 export function NavUser({
   user,
@@ -40,8 +41,22 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
-  
+  const { clearUser } = useUser()
   const router = useRouter()
+
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include',
+      })
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      clearUser()
+      router.push("/modules/auth/login")
+    }
+  }
 
   return (
     <SidebarMenu>
@@ -89,7 +104,7 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem onClick={
                 () => {
-                  router.push("/profile")
+                  router.push("/modules/base/profile")
                 }
               }>
                 <IconUserCircle />
@@ -97,7 +112,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={handleLogout}>
               <IconLogout />
               Log out
             </DropdownMenuItem>

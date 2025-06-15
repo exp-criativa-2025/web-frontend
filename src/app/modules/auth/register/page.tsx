@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Button from '../../../../components/Button';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useUser } from '@/providers/UserProvider';
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -13,6 +14,8 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const { setUser } = useUser();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,10 +43,22 @@ export default function RegisterPage() {
         throw new Error(errorData.message || "Erro ao criar conta");
       }
 
-      await response.json();
+      const data = await response.json();
+      
+      const userData = {
+        id: data.user?.id || "1",
+        name: name,
+        email: email,
+        phone: phone,
+        role: "User",
+        avatar: "/avatars/default.jpg"
+      };
+      
+      setUser(userData);
       router.push("/modules/base/dashboards");
-    } catch (err: any) {
-      setError(err.message || "Erro ao fazer registro.");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Erro ao fazer registro.";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

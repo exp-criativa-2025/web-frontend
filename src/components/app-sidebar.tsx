@@ -21,70 +21,75 @@ import Image from "next/image";
 import TrekoLogo from "@/app/assets/treko_logo.svg";
 import { NavCollapsable } from "./nav-collapsable";
 import { ModeToggle } from "./theme-switcher";
-
-const data = {
-  user: {
-    name: "Pepo",
-    email: "pepo@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
-
-  navMain: [
-    {
-      title: "Dashboard",
-      url: "/dashboards",
-      icon: IconDashboard,
-    },
-
-    {
-      title: "Campanhas",
-      url: "/campaigns",
-      icon: IconDashboard,
-    },
-    {
-      title: "Representantes",
-      url: "/representatives",
-      icon: User,
-    },
-    {
-      title: "Doações",
-      url: "/donations",
-      icon: DollarSign,
-    },
-  ],
-
-  navSecondary: [
-    {
-      title: "Configurações",
-      url: "#",
-      icon: IconSettings,
-    },
-  ],
-
-  navCollapsable: [
-    {
-      title: "Entidades",
-      url: "/orgs",
-      icon: Building,
-      items: [
-        {
-          title: "Todos",
-          url: "/orgs/all",
-        },
-        {
-          title: "Centro Acadêmico",
-          url: "/orgs/academic_center",
-        },
-        {
-          title: "Diretório Central",
-          url: "/orgs/central_directory",
-        },
-      ],
-    },
-  ],
-};
+import { useUser } from "@/providers/UserProvider";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useUser();
+
+  // Fallback user data when no user is logged in
+  const userData = {
+    name: user?.name || "Usuário",
+    email: user?.email || "usuario@example.com",
+    avatar: user?.avatar || "/avatars/shadcn.jpg",
+  };
+
+  const data = {
+    user: userData,
+
+    navMain: [
+      {
+        title: "Dashboard",
+        url: "/dashboards",
+        icon: IconDashboard,
+      },
+      {
+        title: "Campanhas",
+        url: "/campaigns",
+        icon: IconDashboard,
+      },
+      {
+        title: "Representantes",
+        url: "/representatives",
+        icon: User,
+      },
+      {
+        title: "Doações",
+        url: "/donations",
+        icon: DollarSign,
+      },
+    ],
+
+    navSecondary: [
+      {
+        title: "Configurações",
+        url: "#",
+        icon: IconSettings,
+      },
+    ],
+
+    navCollapsable: [
+      {
+        title: "Entidades",
+        url: "/orgs",
+        icon: Building,
+        items: [
+          {
+            title: "Todos",
+            url: "/orgs/all",
+          },
+          {
+            title: "Centro Acadêmico",
+            url: "/orgs/academic_center",
+          },
+          {
+            title: "Diretório Central",
+            url: "/orgs/central_directory",
+          },
+        ],
+      },
+    ],
+  };
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
