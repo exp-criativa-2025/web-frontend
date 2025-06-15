@@ -60,6 +60,10 @@ const nextConfig = {
         source: "/register",
         destination: "/modules/auth/register",
       },
+      {
+        source: "/profile",
+        destination: "/modules/base/profile",
+      },
     ];
   },
 };
