@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { DonationsDataTable } from "@/components/donations-data-table";
+import api from "@/lib/api";
 
 interface Donation {
   id: number;
@@ -20,17 +21,13 @@ export default function DonationsPage() {
   useEffect(() => {
     async function fetchDonations() {
       try {
-        const response = await fetch("http://localhost:8000/api/donations");
-
-        if (!response.ok) {
-          throw new Error(`Erro HTTP! Status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        setDonations(result.data);
-      } catch (err: any) {
+        const response = await api.get(
+          "http://localhost/api/donations/"
+        )
+        setDonations(response.data);
+      } catch (err) {
         console.error("Erro ao carregar doações:", err);
-        setError(`Não foi possível carregar as doações: ${err.message || 'Erro desconhecido'}`);
+        setError(`Não foi possível carregar as doações: ${err || 'Erro desconhecido'}`);
       } finally {
         setLoading(false);
       }

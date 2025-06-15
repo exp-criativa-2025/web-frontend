@@ -3,18 +3,10 @@
 import { ChartMetricInteractive } from "@/components/chart-metric-interactive";
 import { SectionCards } from "@/components/section-cards";
 import api from "@/lib/api";
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function DashboardPage() {
-  const router = useRouter();
 
-  useEffect(() => {
-    const token = localStorage.getItem("auth_token");
-    if (!token) {
-      router.replace("/modules/auth/login");
-    }
-  }, []);
 
   const retentionData = [
     { date: "2025-04-29", retentionRate: 0.96 },
