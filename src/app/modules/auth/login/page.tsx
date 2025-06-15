@@ -36,7 +36,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col lg:flex-row">
-      <div className="flex lg:invisible flex-1 bg-gray-200 relative static">
+      <div className="flex lg:invisible flex-1 bg-gray-200  static">
         <Image
           src="/academic-donations.png"
           alt="Imagem de login"
