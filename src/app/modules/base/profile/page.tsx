@@ -34,9 +34,10 @@ import {
   Bell, 
   Shield, 
   Edit,
-  Camera
+  Camera,
+  Upload
 } from "lucide-react"
-import { useState } from "react"
+import { useState, useRef } from "react"
 
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
@@ -46,30 +47,80 @@ export default function ProfilePage() {
     phone: "(11) 99999-9999",
     location: "São Paulo, SP",
     bio: "Desenvolvedor apaixonado por tecnologia e doações sociais.",
-    joinDate: "Janeiro 2024"
+    joinDate: "Janeiro 2024",
+    avatar: "/placeholder-avatar.jpg"
   })
+  
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  const handleAvatarClick = () => {
+    if (isEditing && fileInputRef.current) {
+      fileInputRef.current.click()
+    }
+  }
+
+  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (e) => {
+        const result = e.target?.result as string
+        setUserInfo({ ...userInfo, avatar: result })
+      }
+      reader.readAsDataURL(file)
+    }
+  }
 
   return (
     <SidebarProvider>
+      <SidebarInset>
+
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           <div className="max-w-4xl mx-auto w-full space-y-6">
             {/* Profile Header */}
             <Card>
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center space-y-4 sm:flex-row sm:space-y-0 sm:space-x-6">
-                  <div className="relative">
-                    <Avatar className="h-24 w-24">
-                      <AvatarImage src="/placeholder-avatar.jpg" alt="Profile" />
+                  <div className="relative group">
+                    <Avatar 
+                      className={`h-24 w-24 ${isEditing ? 'cursor-pointer' : ''}`}
+                      onClick={handleAvatarClick}
+                    >
+                      <AvatarImage src={userInfo.avatar} alt="Profile" />
                       <AvatarFallback className="text-lg">JS</AvatarFallback>
                     </Avatar>
+                    
+                    {/* Hidden file input */}
+                    <input
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handleAvatarChange}
+                      accept="image/*"
+                      className="hidden"
+                    />
+                    
+                    {/* Edit overlay when in edit mode */}
+                    {isEditing && (
+                      <div 
+                        className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                        onClick={handleAvatarClick}
+                      >
+                        <Upload className="h-6 w-6 text-white" />
+                      </div>
+                    )}
+                    
+                    {/* Camera button - now shows different icon based on edit mode */}
                     <Button
                       size="sm"
                       variant="outline"
                       className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+                      onClick={handleAvatarClick}
+                      disabled={!isEditing}
                     >
-                      <Camera className="h-4 w-4" />
+                      {isEditing ? <Upload className="h-4 w-4" /> : <Camera className="h-4 w-4" />}
                     </Button>
                   </div>
+                  
                   <div className="flex-1 text-center sm:text-left">
                     <h1 className="text-2xl font-bold">{userInfo.name}</h1>
                     <p className="text-muted-foreground">{userInfo.email}</p>
@@ -77,7 +128,13 @@ export default function ProfilePage() {
                       <Badge variant="secondary">Membro Ativo</Badge>
                       <Badge variant="outline">Doador</Badge>
                     </div>
+                    {isEditing && (
+                      <p className="text-sm text-muted-foreground mt-2">
+                        Clique na foto para alterar sua imagem de perfil
+                      </p>
+                    )}
                   </div>
+                  
                   <Button 
                     onClick={() => setIsEditing(!isEditing)}
                     variant={isEditing ? "secondary" : "outline"}
@@ -97,7 +154,6 @@ export default function ProfilePage() {
                 <TabsTrigger value="activity">Atividade</TabsTrigger>
               </TabsList>
 
-              {/* Personal Information Tab */}
               <TabsContent value="personal" className="space-y-4">
                 <Card>
                   <CardHeader>
@@ -308,6 +364,7 @@ export default function ProfilePage() {
             </Tabs>
           </div>
         </div>
+      </SidebarInset>
     </SidebarProvider>
   )
 }
