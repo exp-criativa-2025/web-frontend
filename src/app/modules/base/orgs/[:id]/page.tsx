@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import api from "@/lib/api";
 
 interface AcademicEntity {
   id: string;
@@ -61,7 +62,6 @@ export default function AcademicEntityDetailPage() {
   const [isFollowing, setIsFollowing] = useState(false);
 
   useEffect(() => {
-    // Mock data - replace with actual API call
     const mockEntity: AcademicEntity = {
       id: params.id as string,
       type: "Centro Acadêmico",
@@ -83,8 +83,38 @@ export default function AcademicEntityDetailPage() {
       logo: "/placeholder-logo.png"
     };
 
+    const fetchData = async () => {
+      const res = await api.get('/academic-entities/1')
+      const resolved = res.data
+      
+      const newEntity: AcademicEntity = {
+        ...mockEntity,
+        fantasy_name: resolved.fantasy_name ?? mockEntity.fantasy_name,
+        type: resolved.type ?? mockEntity.type,
+        cnpj: resolved.cnpj ?? mockEntity.cnpj,
+        foundation_date: resolved.foundation_date ?? mockEntity.foundation_date,
+        status: resolved.status ?? mockEntity.status,
+        cep: resolved.cep ?? mockEntity.cep,
+        address: resolved.address ?? mockEntity.address,
+        phone: resolved.phone ?? mockEntity.phone,
+        email: resolved.email ?? mockEntity.email,
+        website: resolved.website ?? mockEntity.website,
+        facebook: resolved.facebook ?? mockEntity.facebook,
+        instagram: resolved.instagram ?? mockEntity.instagram,
+        description: resolved.description ?? mockEntity.description,
+        member_count: resolved.member_count ?? mockEntity.member_count,
+        total_donations: resolved.total_donations ?? mockEntity.total_donations,
+        active_campaigns: resolved.active_campaigns ?? mockEntity.active_campaigns,
+        logo: resolved.logo ?? mockEntity.logo,
+        id: resolved.id ?? mockEntity.id,
+      };
+
+      setEntity(newEntity);
+    }
+
     setTimeout(() => {
       setEntity(mockEntity);
+      fetchData()
       setLoading(false);
     }, 1000);
   }, [params.id]);
@@ -120,7 +150,7 @@ export default function AcademicEntityDetailPage() {
           priority
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
-        
+
         {/* Header content */}
         <div className="relative h-full flex items-end p-6">
           <div className="flex items-end gap-6 w-full">
@@ -130,7 +160,7 @@ export default function AcademicEntityDetailPage() {
                 {entity.fantasy_name.charAt(0)}
               </AvatarFallback>
             </Avatar>
-            
+
             <div className="flex-1 text-white mb-2">
               <h1 className="text-3xl font-bold mb-2">{entity.fantasy_name}</h1>
               <div className="flex items-center gap-4 text-white/90">
