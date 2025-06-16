@@ -64,6 +64,18 @@ const nextConfig = {
         source: "/profile",
         destination: "/modules/base/profile",
       },
+      {
+        source: "/userdonations",
+        destination: "/modules/userDonations",
+      },
+      {
+        source: "/userdonations/:path*",
+        destination: "/modules/userDonatiosn/:path*",
+      },
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost/api/:path*'  // ou sem porta se for Sail: 'http://localhost/api/:path*'
+      }
     ];
   },
 };
