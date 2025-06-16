@@ -32,18 +32,25 @@ export interface User {
   name: string;
   email?: string;
   role?: string;
+  cpf?: string;
 }
 
 type UsersDataTableProps = {
   data: User[];
   onDeleteUser: (id: number) => Promise<void>;
+  onUpdateRole: (userId: number, newRole: string) => Promise<void>;
+  currentUserId: number;
+  currentUserRole: string;
   loading?: boolean;
 };
 
 export function UsersDataTable({
   data,
   onDeleteUser,
+  onUpdateRole,
   loading,
+  currentUserId,
+  currentUserRole,
 }: UsersDataTableProps) {
   const [pageSize, setPageSize] = React.useState(10);
   const [isClient, setIsClient] = React.useState(false);
@@ -84,11 +91,20 @@ export function UsersDataTable({
       cell: (info) => info.getValue() ?? "-",
     },
     {
+        accessorKey: "cpf",
+        header: "CPF",
+        cell: (info) => info.getValue() ?? "-",
+    },
+    {
       id: "actions",
       header: "Ações",
       cell: ({ row }) => (
         <UserActions
           userId={row.original.id}
+          currentUserId={currentUserId}
+          currentUserRole={currentUserRole}
+          cpf={row.original.cpf}
+          onUpdateRole={onUpdateRole}
           onDelete={() => {
             setUserToDelete(row.original);
             setDialogOpen(true);
