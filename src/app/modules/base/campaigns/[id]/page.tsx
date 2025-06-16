@@ -6,6 +6,8 @@ import { ptBR } from "date-fns/locale/pt-BR";
 import { Spinner } from "@/components/spinner";
 import api from "@/lib/api";
 import { formatCNPJ } from "@/app/lib/formatCNPJ";
+import { useRouter } from "next/navigation";
+import Button from "@/components/Button";
 
 interface AcademicEntity {
   id: number;
@@ -45,6 +47,7 @@ function daysRemaining(endDate: string) {
 
 export default function Page({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
+  const router = useRouter()
 
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
@@ -129,7 +132,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
       </div>
 
       {/* Entidade acadêmica */}
-      <div className="mb-6 border p-4 rounded bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-700">
+      <div className="mb-6 border p-4 rounded bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-700" >
         <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">
           Entidade Acadêmica
         </h2>
@@ -167,9 +170,8 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
         </div>
         <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden mb-4">
           <div
-            className={`h-4 rounded-full ${
-              expired ? "bg-red-400" : "bg-green-500"
-            } transition-all duration-500`}
+            className={`h-4 rounded-full ${expired ? "bg-red-400" : "bg-green-500"
+              } transition-all duration-500`}
             style={{ width: `${progress}%` }}
           />
         </div>
@@ -211,22 +213,20 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                 const rawValue = e.target.value.replace(/\D/g, "");
                 setDonationAmount(Number(rawValue));
               }}
-              className={`mt-1 block w-full border rounded p-2 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 ${
-                isDonationCompleted
-                  ? "cursor-not-allowed opacity-70"
-                  : "cursor-text"
-              }`}
+              className={`mt-1 block w-full border rounded p-2 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 ${isDonationCompleted
+                ? "cursor-not-allowed opacity-70"
+                : "cursor-text"
+                }`}
               disabled={isDonationCompleted}
             />
           </div>
 
           <button
             type="submit"
-            className={`w-full py-2 px-4 rounded transition flex items-center justify-center ${
-              isDonationCompleted
-                ? "bg-green-600 hover:bg-green-700"
-                : "bg-blue-600 hover:bg-blue-700"
-            } text-white`}
+            className={`w-full py-2 px-4 rounded transition flex items-center justify-center ${isDonationCompleted
+              ? "bg-green-600 hover:bg-green-700"
+              : "bg-blue-600 hover:bg-blue-700"
+              } text-white`}
             disabled={donationLoading || isDonationCompleted}
           >
             {isDonationCompleted ? (
@@ -253,6 +253,18 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
               "Fazer Doação"
             )}
           </button>
+
+          <button
+            className={`w-full py-2 px-4 rounded transition flex items-center justify-center text-gray-400 dark:text-gray-200 bg-gray-200 dark:bg-gray-400 cursor-pointer `}
+            onClick={
+              () => {
+                router.push(`/orgs/${ id }`)
+              }
+            }
+          >
+            Visitar página da entidade
+          </button>
+
         </form>
       )}
       <div className="mt-6">

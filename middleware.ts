@@ -4,10 +4,9 @@ import { jwtVerify } from 'jose'
 
 const PUBLIC_PATHS = [
   /^\/_next\//,
-  // allow POST /api/auth and any subpaths like /api/auth/login
   /^\/api\/auth($|\/)/,    
-  /^\/modules\/auth\/login$/,
-  /^\/modules\/auth\/signup$/,
+  /^\/login$/,
+  /^\/signup$/,
   /^\/$/,
   /\.(.*)$/
 ]
@@ -15,9 +14,9 @@ const PUBLIC_PATHS = [
 export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
-  if (process.env.NODE_ENV === 'development') {
-    return NextResponse.next()
-  }
+  // if (process.env.NODE_ENV === 'development') {
+  //   return NextResponse.next()
+  // }
 
   if (PUBLIC_PATHS.some((r) => r.test(pathname))) {
     return NextResponse.next()
