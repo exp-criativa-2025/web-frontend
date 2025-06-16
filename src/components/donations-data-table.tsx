@@ -120,7 +120,7 @@ export function DonationsDataTable({ data }: DonationsDataTableProps) {
       cell: ({ getValue }) => `R$ ${(getValue() as number).toFixed(2)}`,
     },
     {
-      accessorKey: "date",
+      accessorKey: "created_at",
       header: "Data",
       cell: ({ getValue }) =>
         new Date(getValue() as string).toLocaleDateString("pt-BR"),

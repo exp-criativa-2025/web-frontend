@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { use, useEffect, useState } from "react";
 
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
@@ -44,11 +44,15 @@ function daysRemaining(endDate: string) {
   return Math.max(Math.ceil(diffTime / (1000 * 60 * 60 * 24)), 0);
 }
 
-export default function CampaignDetailPage({ params }: CampaignDetailPageProps) {
-  const { id } = params;
+export default function Page({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+
   const [campaign, setCampaign] = useState<Campaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [donationAmount, setDonationAmount] = useState<number>(1);
+  const [donationLoading, setDonationLoading] = useState(false);
+  const [isDonationCompleted, setIsDonationCompleted] = useState(false);
 
   useEffect(() => {
     async function fetchCampaign() {
@@ -79,7 +83,9 @@ export default function CampaignDetailPage({ params }: CampaignDetailPageProps) 
   if (error || !campaign) {
     return (
       <div className="p-6 text-center">
-        <h1 className="text-2xl font-bold mb-4">{error || "Campanha não encontrada"}</h1>
+        <h1 className="text-2xl font-bold mb-4">
+          {error || "Campanha não encontrada"}
+        </h1>
         <a href="/campaigns" className="text-blue-500 underline">
           ← Voltar para lista de campanhas
         </a>
@@ -90,6 +96,30 @@ export default function CampaignDetailPage({ params }: CampaignDetailPageProps) 
   const totalDonations = campaign.total_donations ?? 0;
   const progress = Math.min((totalDonations / campaign.goal) * 100, 100);
   const expired = new Date(campaign.end_date) < new Date();
+  const handleDonation = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      setDonationLoading(true);
+      await api.post("/donations", {
+        campaign_id: campaign?.id,
+        donated: donationAmount,
+      });
+      setDonationAmount(1);
+      setIsDonationCompleted(true); // Aqui você bloqueia tudo
+    } catch (err) {
+      console.error("Erro ao realizar doação:", err);
+    } finally {
+      setDonationLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="p-6 text-center">
+        <Spinner />
+      </div>
+    );
+  }
 
   return (
     <div className="w-[70%] mx-auto p-6 bg-white rounded-lg shadow-md">
@@ -108,16 +138,32 @@ export default function CampaignDetailPage({ params }: CampaignDetailPageProps) 
       {/* Entidade acadêmica */}
       <div className="mb-6 border p-4 rounded bg-gray-50">
         <h2 className="text-xl font-semibold mb-2">Entidade Acadêmica</h2>
-        <p><strong>Nome fantasia:</strong> {campaign.academic_entity.fantasy_name}</p>
-        <p><strong>Tipo:</strong> {campaign.academic_entity.type}</p>
-        <p><strong>CNPJ:</strong> {formatCNPJ(campaign.academic_entity.cnpj)}</p>
-        <p><strong>Fundação:</strong> {format(new Date(campaign.academic_entity.foundation_date), "PPP", { locale: ptBR })}</p>
+        <p>
+          <strong>Nome fantasia:</strong>{" "}
+          {campaign.academic_entity.fantasy_name}
+        </p>
+        <p>
+          <strong>Tipo:</strong> {campaign.academic_entity.type}
+        </p>
+        <p>
+          <strong>CNPJ:</strong> {formatCNPJ(campaign.academic_entity.cnpj)}
+        </p>
+        <p>
+          <strong>Fundação:</strong>{" "}
+          {format(new Date(campaign.academic_entity.foundation_date), "PPP", {
+            locale: ptBR,
+          })}
+        </p>
       </div>
 
       {/* Valores */}
       <div className="mb-4">
-        <p><strong>Meta:</strong> {formatCurrency(campaign.goal)}</p>
-        <p><strong>Arrecadado:</strong> {formatCurrency(totalDonations)}</p>
+        <p>
+          <strong>Meta:</strong> {formatCurrency(campaign.goal)}
+        </p>
+        <p>
+          <strong>Arrecadado:</strong> {formatCurrency(totalDonations)}
+        </p>
         <p className="mb-4">
           <strong>Faltam:</strong>{" "}
           {formatCurrency(Math.max(campaign.goal - totalDonations, 0))}
@@ -137,151 +183,86 @@ export default function CampaignDetailPage({ params }: CampaignDetailPageProps) 
 
         {expired ? (
           <p className="text-red-600 font-bold mb-6">
-            Esta campanha expirou em {format(new Date(campaign.end_date), "PPP", { locale: ptBR })}.
+            Esta campanha expirou em{" "}
+            {format(new Date(campaign.end_date), "PPP", { locale: ptBR })}.
           </p>
         ) : (
           <>
             <p className="text-green-700 font-medium mb-2">
-              Ainda ativa – termina em {format(new Date(campaign.end_date), "PPP", { locale: ptBR })}.
+              Ainda ativa – termina em{" "}
+              {format(new Date(campaign.end_date), "PPP", { locale: ptBR })}.
             </p>
             <p className="text-gray-600 mb-6">
-              Faltam <strong>{daysRemaining(campaign.end_date)}</strong> dias para o término.
+              Faltam <strong>{daysRemaining(campaign.end_date)}</strong> dias
+              para o término.
             </p>
           </>
         )}
       </div>
-
-      <form action="" method="post" className="space-y-4">
-        <input type="hidden" name="campaign_id" value={campaign.id} />
-        {/* Show donation fields based on campaign.accepted */}
-        {campaign.accepted === "money" && (
+      {!expired && (
+        <form onSubmit={handleDonation} className="space-y-4">
           <div>
             <label
               htmlFor="donation_amount"
               className="block text-sm font-medium text-gray-700"
             >
-              Valor da doação (R$)
+              Quanto deseja doar?
             </label>
             <input
-              type="number"
+              type="text"
               name="donation_amount"
               id="donation_amount"
-              min="1"
-              step="1"
               required
-              className="mt-1 block w-full border border-gray-300 rounded p-2"
+              inputMode="numeric"
+              value={formatCurrency(donationAmount / 100)}
+              onChange={(e) => {
+                const rawValue = e.target.value.replace(/\D/g, "");
+                setDonationAmount(Number(rawValue));
+              }}
+              className={`mt-1 block w-full border rounded p-2 ${
+                isDonationCompleted
+                  ? "bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed"
+                  : "bg-white border-gray-300"
+              }`}
+              disabled={isDonationCompleted}
             />
           </div>
-        )}
-        {campaign.accepted === "food" && (
-          <div>
-            <label
-              htmlFor="donation_amount"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Quantidade de alimentos (kg)
-            </label>
-            <input
-              type="number"
-              name="donation_amount"
-              id="donation_amount"
-              min="1"
-              step="1"
-              required
-              className="mt-1 block w-full border border-gray-300 rounded p-2"
-            />
-          </div>
-        )}
-        {campaign.accepted === "clothes" && (
-          <>
-            <div>
-              <label
-                htmlFor="donation_amount"
-                className="block text-sm font-medium text-gray-700"
-              >
-                Quantidade de roupas (peças)
-              </label>
-              <input
-                type="number"
-                name="donation_amount"
-                id="donation_amount"
-                min="1"
-                step="1"
-                required
-                className="mt-1 block w-full border border-gray-300 rounded p-2"
-              />
-            </div>
-            <div>
-              <label
-                htmlFor="donation_type"
-                className="block text-sm font-medium text-gray-700 mt-5"
-              >
-                Tipo da roupa (Ex: Camisa, Calça, etc.)
-              </label>
-              <input
-                type="text"
-                name="donation_type"
-                id="donation_type"
-                placeholder="Blusa de moleton, calça jeans, etc."
-                className="mt-1 block w-full border border-gray-300 rounded p-2"
-              />
-            </div>
-          </>
-        )}
-        {campaign.accepted === "toys" && (
-          <div>
-            <label
-              htmlFor="donation_amount"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Quantidade de brinquedos (peças)
-            </label>
-            <input
-              type="number"
-              name="donation_amount"
-              id="donation_amount"
-              min="1"
-              step="1"
-              required
-              className="mt-1 block w-full border border-gray-300 rounded p-2"
-            />
-          </div>
-        )}
 
-        <div>
-          <label
-            htmlFor="donor_name"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Seu nome
-          </label>
-          <input
-            type="text"
-            name="donor_name"
-            id="donor_name"
-            required
-            className="mt-1 block w-full border border-gray-300 rounded p-2"
-          />
-        </div>
-
-        {!expired ? (
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700 transition"
+            className={`w-full py-2 px-4 rounded transition flex items-center justify-center ${
+              isDonationCompleted
+                ? "bg-green-600 hover:bg-green-700"
+                : "bg-blue-600 hover:bg-blue-700"
+            } text-white`}
+            disabled={donationLoading || isDonationCompleted}
           >
-            Fazer Doação
+            {isDonationCompleted ? (
+              <>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 mr-2"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                Doação realizada
+              </>
+            ) : donationLoading ? (
+              "Processando..."
+            ) : (
+              "Fazer Doação"
+            )}
           </button>
-        ) : (
-          <button
-            type="submit"
-            className="w-full bg-gray-400 text-white py-2 px-4 rounded cursor-not-allowed"
-            disabled
-          >
-            Fazer Doação
-          </button>
-        )}
-      </form>
-
+        </form>
+      )}
       <div className="mt-6">
         <a href="/campaigns" className="text-blue-500 hover:underline">
           ← Voltar para lista de campanhas
