@@ -14,6 +14,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { User, Mail, Phone, MapPin, Bell, Shield, Edit, Camera, Upload, Loader2 } from "lucide-react"
 import api, { getAvatarUrl } from "@/lib/api"
 
+import { supabase } from "@/lib/supabaseConfig"
+
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -52,6 +54,7 @@ export default function ProfilePage() {
 
         setUserInfo(userData)
         setOriginalUserInfo(userData) // Salva o estado inicial
+        console.log(userData.avatar)
       } catch (error) {
         console.error("Erro ao buscar dados do perfil:", error)
       } finally {
@@ -99,15 +102,61 @@ export default function ProfilePage() {
     }
   }
 
-  const handleAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false)
+
+  const handleAvatarChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        const result = e.target?.result as string
-        setUserInfo({ ...userInfo, avatar: result })
+    if (!file) return
+
+    setIsUploadingAvatar(true)
+    
+    try {
+
+      const fileExt = file.name.split('.').pop()
+      const fileName = `${userInfo.id}-${Date.now()}.${fileExt}`
+      const filePath = `avatars/${fileName}`
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('user-images') // Make sure this bucket exists in your Supabase storage
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        })
+
+      if (uploadError) {
+        throw uploadError
       }
-      reader.readAsDataURL(file)
+
+      // Get the public URL
+      const { data: urlData } = supabase.storage
+        .from('user-images')
+        .getPublicUrl(filePath)
+
+      if (urlData?.publicUrl) {
+        // Send the full Supabase URL to your backend
+        try {
+          const response = await api.put(`/users/${userInfo.id}`, {
+            ...userInfo,
+            avatar: urlData.publicUrl // This should be the full Supabase URL
+          })
+
+          const updatedUserData = response.data
+          setUserInfo(updatedUserData)
+          setOriginalUserInfo(updatedUserData)
+          
+          console.log('Avatar uploaded and updated successfully:', urlData.publicUrl)
+          console.log(userInfo)
+          console.log(originalUserInfo)
+
+        } catch (dbError) {
+          console.error('Error updating avatar in database:', dbError)
+        }
+      }
+
+    } catch (error) {
+      console.error('Error uploading avatar:', error)
+    } finally {
+      setIsUploadingAvatar(false)
     }
   }
 
@@ -124,11 +173,13 @@ export default function ProfilePage() {
                 <div className="flex flex-col items-center space-y-4 sm:flex-row sm:space-y-0 sm:space-x-6">
                   <div className="relative group">
                     <Avatar
-                      className={`h-24 w-24 ${isEditing ? 'cursor-pointer' : ''}`}
+                      className={`h-24 w-24 ${isEditing ? 'cursor-pointer' : ''} ${isUploadingAvatar ? 'opacity-50' : ''}`}
                       onClick={handleAvatarClick}
                     >
                       <AvatarImage src={userInfo.avatar} alt="Profile" />
-                      <AvatarFallback className="text-lg">JS</AvatarFallback>
+                      <AvatarFallback className="text-lg">
+                        {isUploadingAvatar ? <Loader2 className="h-6 w-6 animate-spin" /> : 'JS'}
+                      </AvatarFallback>
                     </Avatar>
 
                     <input
@@ -137,9 +188,10 @@ export default function ProfilePage() {
                       onChange={handleAvatarChange}
                       accept="image/*"
                       className="hidden"
+                      disabled={isUploadingAvatar}
                     />
 
-                    {isEditing && (
+                    {isEditing && !isUploadingAvatar && (
                       <div
                         className="absolute inset-0 bg-black bg-opacity-50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                         onClick={handleAvatarClick}
@@ -149,13 +201,17 @@ export default function ProfilePage() {
                     )}
                     
                     <Button
-                        size="sm"
-                        variant="outline"
-                        className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
-                        onClick={isEditing ? handleAvatarClick : undefined}
-                        disabled={!isEditing}
-                      >
+                      size="sm"
+                      variant="outline"
+                      className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full p-0"
+                      onClick={isEditing ? handleAvatarClick : undefined}
+                      disabled={!isEditing || isUploadingAvatar}
+                    >
+                      {isUploadingAvatar ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
                         <Upload className="h-4 w-4" />
+                      )}
                     </Button>
                   </div>
 
