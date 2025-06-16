@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -33,6 +33,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import api from "@/lib/api";
+import { Campaign } from "../../campaigns/page";
 
 interface AcademicEntity {
   id: string;
@@ -55,11 +56,14 @@ interface AcademicEntity {
   logo?: string;
 }
 
-export default function AcademicEntityDetailPage() {
+export default function AcademicEntityDetailPage({p}) {
   const params = useParams();
   const [entity, setEntity] = useState<AcademicEntity | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [campaigns, setCampaigns] = useState<Campaign[]>()
+  
+  const router = useRouter()
 
   useEffect(() => {
     const mockEntity: AcademicEntity = {
@@ -85,8 +89,10 @@ export default function AcademicEntityDetailPage() {
 
     const fetchData = async () => {
       const res = await api.get('/academic-entities/1')
+      console.log(`the id: ${params.id}`)
+      console.log(`the id: ${p}`)
       const resolved = res.data
-      
+
       const newEntity: AcademicEntity = {
         ...mockEntity,
         fantasy_name: resolved.fantasy_name ?? mockEntity.fantasy_name,
@@ -112,9 +118,19 @@ export default function AcademicEntityDetailPage() {
       setEntity(newEntity);
     }
 
+    const getCampaigns = async () => {
+      const res = await api.get('/campaigns')
+      const filtered = res.data as Array<Campaign>
+      const mine = filtered.filter((element) => element.academic_entity.id === 1)
+      console.log(filtered)
+      console.log(mine)
+      setCampaigns(mine)
+    }
+
     setTimeout(() => {
       setEntity(mockEntity);
       fetchData()
+      getCampaigns()
       setLoading(false);
     }, 1000);
   }, [params.id]);
@@ -245,7 +261,7 @@ export default function AcademicEntityDetailPage() {
                         <TrendingUp className="h-6 w-6 text-purple-600" />
                       </div>
                       <div>
-                        <p className="text-2xl font-bold">{entity.active_campaigns}</p>
+                        <p className="text-2xl font-bold">{campaigns?.length}</p>
                         <p className="text-sm text-gray-600">Campanhas Ativas</p>
                       </div>
                     </div>
@@ -278,158 +294,172 @@ export default function AcademicEntityDetailPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {[1, 2, 3].map((i) => (
+                    {campaigns?.map((val, i) => (
                       <div key={i} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
                         <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                           <Heart className="h-6 w-6 text-blue-600" />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-semibold">Campanha de Doação {i}</h4>
+                          <h4 className="font-semibold">{val.name}</h4>
                           <p className="text-sm text-gray-600">Ajuda para estudantes em situação de vulnerabilidade</p>
                           <div className="flex items-center gap-2 mt-2">
-                            <div className="w-24 h-2 bg-gray-200 rounded-full">
-                              <div className="w-3/4 h-2 bg-green-500 rounded-full"></div>
+                            <div className="w-24 h-2 bg-gray-200 rounded-full overflow-hidden">
+                              <div
+                              className="h-2 bg-green-500 rounded-full transition-all duration-300"
+                              style={{
+                                width: val.total_donations && val.goal
+                                ? `${Math.min(100, Math.round((val.total_donations / val.goal) * 100))}%`
+                                : "0%"
+                              }}
+                              ></div>
                             </div>
-                            <span className="text-sm text-gray-600">75% da meta</span>
+                            <span>{val.total_donations && val.goal
+                              ? `${Math.round((val.total_donations / val.goal) * 100)}%`
+                              : "0%"}
+                              </span>
                           </div>
                         </div>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm"
+                          onClick={() => {
+                            router.push(`/campaigns/${val.id}`)
+                          }}
+                        >
                           Ver mais
                         </Button>
                       </div>
                     ))}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </ResizablePanel>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </ResizablePanel>
 
-          <ResizableHandle />
+        <ResizableHandle />
 
-          {/* Right Panel - Contact & Details */}
-          <ResizablePanel defaultSize={30} minSize={25}>
-            <div className="pl-4 space-y-6">
-              {/* Contact Information */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Informações de Contato</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {entity.address && (
-                    <div className="flex items-start gap-3">
-                      <MapPin className="h-5 w-5 text-gray-500 mt-0.5" />
-                      <div>
-                        <p className="font-medium">Endereço</p>
-                        <p className="text-sm text-gray-600">{entity.address}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {entity.phone && (
-                    <div className="flex items-center gap-3">
-                      <Phone className="h-5 w-5 text-gray-500" />
-                      <div>
-                        <p className="font-medium">Telefone</p>
-                        <p className="text-sm text-gray-600">{entity.phone}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {entity.email && (
-                    <div className="flex items-center gap-3">
-                      <Mail className="h-5 w-5 text-gray-500" />
-                      <div>
-                        <p className="font-medium">E-mail</p>
-                        <p className="text-sm text-gray-600">{entity.email}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  <Separator />
-
-                  {/* Social Links */}
-                  <div className="space-y-3">
-                    <p className="font-medium">Redes Sociais</p>
-                    <div className="flex gap-2">
-                      {entity.website && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={entity.website} target="_blank" rel="noopener noreferrer">
-                            <Globe className="h-4 w-4" />
-                          </a>
-                        </Button>
-                      )}
-                      {entity.facebook && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={entity.facebook} target="_blank" rel="noopener noreferrer">
-                            <Facebook className="h-4 w-4" />
-                          </a>
-                        </Button>
-                      )}
-                      {entity.instagram && (
-                        <Button variant="outline" size="sm" asChild>
-                          <a href={entity.instagram} target="_blank" rel="noopener noreferrer">
-                            <Instagram className="h-4 w-4" />
-                          </a>
-                        </Button>
-                      )}
+        {/* Right Panel - Contact & Details */}
+        <ResizablePanel defaultSize={30} minSize={25}>
+          <div className="pl-4 space-y-6">
+            {/* Contact Information */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Informações de Contato</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {entity.address && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-5 w-5 text-gray-500 mt-0.5" />
+                    <div>
+                      <p className="font-medium">Endereço</p>
+                      <p className="text-sm text-gray-600">{entity.address}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                )}
 
-              {/* Organization Details */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Detalhes da Organização</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                {entity.phone && (
+                  <div className="flex items-center gap-3">
+                    <Phone className="h-5 w-5 text-gray-500" />
                     <div>
-                      <p className="font-medium text-gray-500">CNPJ</p>
-                      <p>{entity.cnpj}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-500">Status</p>
-                      <Badge variant={entity.status === 'Ativo' ? 'default' : 'secondary'}>
-                        {entity.status}
-                      </Badge>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-500">Fundação</p>
-                      <p>{format(new Date(entity.foundation_date), "dd/MM/yyyy", { locale: ptBR })}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-500">CEP</p>
-                      <p>{entity.cep}</p>
+                      <p className="font-medium">Telefone</p>
+                      <p className="text-sm text-gray-600">{entity.phone}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                )}
 
-              {/* Quick Actions */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Ações Rápidas</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <Button className="w-full" size="sm">
-                    <Heart className="h-4 w-4 mr-2" />
-                    Fazer Doação
-                  </Button>
-                  <Button variant="outline" className="w-full" size="sm">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Entrar em Contato
-                  </Button>
-                  <Button variant="outline" className="w-full" size="sm">
-                    <Star className="h-4 w-4 mr-2" />
-                    Avaliar Organização
-                  </Button>
-                </CardContent>
-              </Card>
-            </div>
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      </div>
+                {entity.email && (
+                  <div className="flex items-center gap-3">
+                    <Mail className="h-5 w-5 text-gray-500" />
+                    <div>
+                      <p className="font-medium">E-mail</p>
+                      <p className="text-sm text-gray-600">{entity.email}</p>
+                    </div>
+                  </div>
+                )}
+
+                <Separator />
+
+                {/* Social Links */}
+                <div className="space-y-3">
+                  <p className="font-medium">Redes Sociais</p>
+                  <div className="flex gap-2">
+                    {entity.website && (
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={entity.website} target="_blank" rel="noopener noreferrer">
+                          <Globe className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    )}
+                    {entity.facebook && (
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={entity.facebook} target="_blank" rel="noopener noreferrer">
+                          <Facebook className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    )}
+                    {entity.instagram && (
+                      <Button variant="outline" size="sm" asChild>
+                        <a href={entity.instagram} target="_blank" rel="noopener noreferrer">
+                          <Instagram className="h-4 w-4" />
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Organization Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Detalhes da Organização</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <p className="font-medium text-gray-500">CNPJ</p>
+                    <p>{entity.cnpj}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-500">Status</p>
+                    <Badge variant={entity.status === 'Ativo' ? 'default' : 'secondary'}>
+                      {entity.status}
+                    </Badge>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-500">Fundação</p>
+                    <p>{format(new Date(entity.foundation_date), "dd/MM/yyyy", { locale: ptBR })}</p>
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-500">CEP</p>
+                    <p>{entity.cep}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Quick Actions */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Ações Rápidas</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <Button className="w-full" size="sm">
+                  <Heart className="h-4 w-4 mr-2" />
+                  Fazer Doação
+                </Button>
+                <Button variant="outline" className="w-full" size="sm">
+                  <Mail className="h-4 w-4 mr-2" />
+                  Entrar em Contato
+                </Button>
+                <Button variant="outline" className="w-full" size="sm">
+                  <Star className="h-4 w-4 mr-2" />
+                  Avaliar Organização
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </ResizablePanel>
+      </ResizablePanelGroup>
     </div>
+    </div >
   );
 }
