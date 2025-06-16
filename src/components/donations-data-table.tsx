@@ -1,58 +1,23 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 
 import * as React from "react";
 import { z } from "zod";
-import {
-  useReactTable,
-  ColumnDef,
-  getCoreRowModel,
-  getPaginationRowModel,
-} from "@tanstack/react-table";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { useReactTable, ColumnDef, getCoreRowModel, getPaginationRowModel } from "@tanstack/react-table";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { formatCNPJ } from "@/lib/formatCNPJ";
 
 const donationSchema = z.object({
   id: z.number(),
+  donation_name: z.string(),
+  name: z.string(),
   donated: z.number(),
+  type: z.string(),
   date: z.string(),
-  user: z.object({
-    id: z.number(),
-    name: z.string(),
-  }),
-  campaign: z.object({
-    id: z.number(),
-    name: z.string(),
-    academic_entity: z
-      .object({
-        id: z.number(),
-        fantasy_name: z.string().optional(),
-        cnpj: z.string().optional(),
-      })
-      .optional(),
-  }),
-  type: z.string().optional(),
 });
 
-type Donation = z.infer<typeof donationSchema>;
-
 type DonationsDataTableProps = {
-  data: Donation[];
+  data: z.infer<typeof donationSchema>[];
 };
 
 export function DonationsDataTable({ data }: DonationsDataTableProps) {
@@ -70,54 +35,37 @@ export function DonationsDataTable({ data }: DonationsDataTableProps) {
       let matchesDate = true;
 
       if (dateRange === "30days") {
-        matchesDate =
-          donationDate >= new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        matchesDate = donationDate >= new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
       } else if (dateRange === "7days") {
-        matchesDate =
-          donationDate >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        matchesDate = donationDate >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
       } else if (dateRange === "3days") {
-        matchesDate =
-          donationDate >= new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+        matchesDate = donationDate >= new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
       }
 
       return matchesType && matchesDate;
     });
   }, [typeFilter, dateRange, data]);
 
-  const columns: ColumnDef<Donation>[] = [
+  const columns: ColumnDef<z.infer<typeof donationSchema>>[] = [
     {
-      accessorKey: "campaign.name",
+      accessorKey: "donation_name",
       header: "Campanha",
-      cell: ({ row }) => row.original.campaign.name,
     },
     {
-      accessorKey: "campaign.academic_entity.fantasy_name",
-      header: "Entidade acadêmica ",
-      cell: ({ row }) =>
-        row.original.campaign.academic_entity?.fantasy_name || "N/A",
-    },
-    {
-      accessorKey: "campaign.academic_entity.cnpj",
-      header: "CNPJ",
-      cell: ({ row }) =>
-        formatCNPJ(row.original.campaign.academic_entity?.cnpj),
-    },
-    ,
-    {
-      accessorKey: "user.name",
+      accessorKey: "name",
       header: "Doador",
-      cell: ({ row }) => row.original.user.name,
     },
     {
       accessorKey: "donated",
       header: "Quantidade doada",
-      cell: ({ getValue }) => `R$ ${getValue<number>().toFixed(2)}`,
+    },
+    {
+      accessorKey: "type",
+      header: "Tipo da doação",
     },
     {
       accessorKey: "date",
       header: "Data",
-      cell: ({ getValue }) =>
-        new Date(getValue<string>()).toLocaleDateString("pt-BR"),
     },
   ];
 
@@ -135,6 +83,34 @@ export function DonationsDataTable({ data }: DonationsDataTableProps) {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Filtros acima da tabela */}
+      <div className="flex flex-wrap gap-4 items-center">
+        <Select value={typeFilter} onValueChange={setTypeFilter}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Filter by type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            <SelectItem value="money">Money</SelectItem>
+            <SelectItem value="Coat">Coat</SelectItem>
+            <SelectItem value="food">Food</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select value={dateRange} onValueChange={setDateRange}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Filter by date range" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Dates</SelectItem>
+            <SelectItem value="30days">Last 30 Days</SelectItem>
+            <SelectItem value="7days">Last 7 Days</SelectItem>
+            <SelectItem value="3days">Last 3 Days</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Tabela */}
       <Table className="border rounded-lg">
         <TableHeader className="bg-muted">
           {table.getHeaderGroups().map((headerGroup) => (
@@ -169,17 +145,17 @@ export function DonationsDataTable({ data }: DonationsDataTableProps) {
           ) : (
             <TableRow>
               <TableCell colSpan={columns.length} className="text-center">
-                Nenhum resultado encontrado.
+                No results found.
               </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
 
+      {/* Controles de paginação abaixo da tabela */}
       <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          Mostrando {table.getRowModel().rows.length} de {filteredData.length}{" "}
-          registros
+          Showing {table.getRowModel().rows.length} of {filteredData.length} records
         </div>
         <div className="flex items-center gap-2">
           <Button
@@ -187,14 +163,14 @@ export function DonationsDataTable({ data }: DonationsDataTableProps) {
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
-            Anterior
+            Previous
           </Button>
           <Button
             variant="outline"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >
-            Próxima
+            Next
           </Button>
         </div>
       </div>
