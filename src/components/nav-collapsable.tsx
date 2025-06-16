@@ -47,9 +47,7 @@ export function NavCollapsable({
               <SidebarMenuButton tooltip={item.title} className="flex items-center">
                 {item.icon && <item.icon className="mr-2" />}
 
-                <Link href={item.url} className="flex-1">
                   <span>{item.title}</span>
-                </Link>
 
                 {item.items && (
                   <CollapsibleTrigger asChild>

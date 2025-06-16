@@ -17,16 +17,12 @@ const nextConfig = {
         destination: "/modules/base/orgs/:path*",
       },
       {
-        source: "/representatives/:path*",
-        destination: "/modules/base/representative/:path*",
+        source: "/users/:path*",
+        destination: "/modules/base/users/:path*",
       },
       {
-        source: "/representatives",
-        destination: "/modules/base/representative",
-      },
-      {
-        source: "/orgs",
-        destination: "/modules/base/orgs",
+        source: "/users",
+        destination: "/modules/base/users",
       },
       {
         source: "/campaigns/:path*",

@@ -42,8 +42,8 @@ const data = {
       icon: IconDashboard,
     },
     {
-      title: "Representantes",
-      url: "/representatives",
+      title: "Usuários",
+      url: "/users",
       icon: User,
     },
     {
@@ -64,7 +64,6 @@ const data = {
   navCollapsable: [
     {
       title: "Entidades",
-      url: "/orgs",
       icon: Building,
       items: [
         {
