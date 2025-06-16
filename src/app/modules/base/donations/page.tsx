@@ -2,14 +2,28 @@
 
 import { useState, useEffect } from "react";
 import { DonationsDataTable } from "@/components/donations-data-table";
+import api from "@/lib/api";
+import { Spinner } from "@/components/ui/spinner";
 
-interface Donation {
+export interface Donation {
   id: number;
-  donation_name: string;
-  name: string;
   donated: number;
-  type: string;
+  user: {
+        id: number;
+        name: string;
+    };
   date: string;
+  campaign: {
+    id: number;
+    name: string;
+    academic_entity?:
+      | {
+          id: number;
+          fantasy_name?: string | undefined;
+          cnpj?: string | undefined;
+        }
+      | undefined;
+  };
 }
 
 export default function DonationsPage() {
@@ -20,17 +34,10 @@ export default function DonationsPage() {
   useEffect(() => {
     async function fetchDonations() {
       try {
-        const response = await fetch("http://localhost:8000/api/donations");
-
-        if (!response.ok) {
-          throw new Error(`Erro HTTP! Status: ${response.status}`);
-        }
-
-        const result = await response.json();
-        setDonations(result.data);
-      } catch (err: any) {
+        const response = await api.get("http://localhost/api/donations/");
+        setDonations(response.data);
+      } catch (err) {
         console.error("Erro ao carregar doações:", err);
-        setError(`Não foi possível carregar as doações: ${err.message || 'Erro desconhecido'}`);
       } finally {
         setLoading(false);
       }
@@ -42,7 +49,7 @@ export default function DonationsPage() {
   if (loading) {
     return (
       <div className="p-4 flex justify-center items-center h-64">
-        <p>Carregando dados das doações...</p>
+        <Spinner></Spinner>
       </div>
     );
   }
