@@ -1,7 +1,6 @@
 "use client";
 
 import React, { use, useEffect, useState } from "react";
-
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale/pt-BR";
 import { Spinner } from "@/components/spinner";
@@ -83,7 +82,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
   if (error || !campaign) {
     return (
       <div className="p-6 text-center">
-        <h1 className="text-2xl font-bold mb-4">
+        <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
           {error || "Campanha não encontrada"}
         </h1>
         <a href="/campaigns" className="text-blue-500 underline">
@@ -105,7 +104,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
         donated: donationAmount,
       });
       setDonationAmount(1);
-      setIsDonationCompleted(true); // Aqui você bloqueia tudo
+      setIsDonationCompleted(true);
     } catch (err) {
       console.error("Erro ao realizar doação:", err);
     } finally {
@@ -113,42 +112,37 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="p-6 text-center">
-        <Spinner />
-      </div>
-    );
-  }
-
   return (
-    <div className="w-[70%] mx-auto p-6 bg-white rounded-lg shadow-md">
-      <h1 className="text-3xl font-bold mb-4">{campaign.name}</h1>
+    <div className="w-[70%] mx-auto p-6 bg-white dark:bg-gray-900 rounded-lg shadow-md">
+      <h1 className="text-3xl font-bold mb-4 text-gray-900 dark:text-gray-100">
+        {campaign.name}
+      </h1>
 
       {campaign.description && (
-        <p className="text-gray-700 mb-2">{campaign.description}</p>
+        <p className="text-gray-700 dark:text-gray-300 mb-2">{campaign.description}</p>
       )}
 
-      <div className="mb-4">
+      <div className="mb-4 text-gray-800 dark:text-gray-300">
         <span className="font-medium">Período:</span>{" "}
         {format(new Date(campaign.start_date), "PPP", { locale: ptBR })} até{" "}
         {format(new Date(campaign.end_date), "PPP", { locale: ptBR })}
       </div>
 
       {/* Entidade acadêmica */}
-      <div className="mb-6 border p-4 rounded bg-gray-50">
-        <h2 className="text-xl font-semibold mb-2">Entidade Acadêmica</h2>
-        <p>
-          <strong>Nome fantasia:</strong>{" "}
-          {campaign.academic_entity.fantasy_name}
+      <div className="mb-6 border p-4 rounded bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-700">
+        <h2 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">
+          Entidade Acadêmica
+        </h2>
+        <p className="text-gray-800 dark:text-gray-300">
+          <strong>Nome fantasia:</strong> {campaign.academic_entity.fantasy_name}
         </p>
-        <p>
+        <p className="text-gray-800 dark:text-gray-300">
           <strong>Tipo:</strong> {campaign.academic_entity.type}
         </p>
-        <p>
+        <p className="text-gray-800 dark:text-gray-300">
           <strong>CNPJ:</strong> {formatCNPJ(campaign.academic_entity.cnpj)}
         </p>
-        <p>
+        <p className="text-gray-800 dark:text-gray-300">
           <strong>Fundação:</strong>{" "}
           {format(new Date(campaign.academic_entity.foundation_date), "PPP", {
             locale: ptBR,
@@ -157,7 +151,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
       </div>
 
       {/* Valores */}
-      <div className="mb-4">
+      <div className="mb-4 text-gray-900 dark:text-gray-100">
         <p>
           <strong>Meta:</strong> {formatCurrency(campaign.goal)}
         </p>
@@ -165,14 +159,13 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
           <strong>Arrecadado:</strong> {formatCurrency(totalDonations)}
         </p>
         <p className="mb-4">
-          <strong>Faltam:</strong>{" "}
-          {formatCurrency(Math.max(campaign.goal - totalDonations, 0))}
+          <strong>Faltam:</strong> {formatCurrency(Math.max(campaign.goal - totalDonations, 0))}
         </p>
 
-        <div className="mb-1">
+        <div className="mb-1 text-gray-900 dark:text-gray-100">
           <span className="font-medium">Progresso:</span> {progress.toFixed(2)}%
         </div>
-        <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden mb-4">
+        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4 overflow-hidden mb-4">
           <div
             className={`h-4 rounded-full ${
               expired ? "bg-red-400" : "bg-green-500"
@@ -182,19 +175,18 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
         </div>
 
         {expired ? (
-          <p className="text-red-600 font-bold mb-6">
+          <p className="text-red-600 dark:text-red-400 font-bold mb-6">
             Esta campanha expirou em{" "}
             {format(new Date(campaign.end_date), "PPP", { locale: ptBR })}.
           </p>
         ) : (
           <>
-            <p className="text-green-700 font-medium mb-2">
+            <p className="text-green-700 dark:text-green-400 font-medium mb-2">
               Ainda ativa – termina em{" "}
               {format(new Date(campaign.end_date), "PPP", { locale: ptBR })}.
             </p>
-            <p className="text-gray-600 mb-6">
-              Faltam <strong>{daysRemaining(campaign.end_date)}</strong> dias
-              para o término.
+            <p className="text-gray-600 dark:text-gray-400 mb-6">
+              Faltam <strong>{daysRemaining(campaign.end_date)}</strong> dias para o término.
             </p>
           </>
         )}
@@ -204,7 +196,7 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
           <div>
             <label
               htmlFor="donation_amount"
-              className="block text-sm font-medium text-gray-700"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300"
             >
               Quanto deseja doar?
             </label>
@@ -219,10 +211,10 @@ export default function Page({ params }: { params: Promise<{ id: string }> }) {
                 const rawValue = e.target.value.replace(/\D/g, "");
                 setDonationAmount(Number(rawValue));
               }}
-              className={`mt-1 block w-full border rounded p-2 ${
+              className={`mt-1 block w-full border rounded p-2 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 ${
                 isDonationCompleted
-                  ? "bg-gray-100 border-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-white border-gray-300"
+                  ? "cursor-not-allowed opacity-70"
+                  : "cursor-text"
               }`}
               disabled={isDonationCompleted}
             />
