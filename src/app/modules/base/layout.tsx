@@ -22,7 +22,9 @@ export default function BaseLayout({
   return (
 
     <html>
+      <head>
       <link rel="icon" href="/favicon.svg" />
+      </head>
       <body className="w-screen h-screen">
         <ThemeProvider>
           <SidebarProvider>

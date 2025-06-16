@@ -1,35 +1,55 @@
-// src/app/modules/base/donation/page.tsx
 "use client";
 
-import CampaignCard from "@/components/campaign-card";
 import React, { useEffect, useState } from "react";
+import api from "@/lib/api";
+import CampaignCard from "@/components/campaign-card";
+import { Spinner } from "@/components/spinner";
 
-type Campaign = {
+export interface Campaign {
   id: number;
   name: string;
   goal: number;
-  startDate: string;
-  endDate: string;
-  academicEntityId: number;
-  totalDonations: number;
+  start_date: string;
+  end_date: string;
+  academic_entity: AcademicEntity;
+  total_donations: number;
 };
+
+export interface AcademicEntity {
+  id: number;
+  type: string;
+  fantasy_name: string;
+  cnpj: string;
+  foundation_date: string;
+  status: string;
+  cep: string;
+  user_id: number;
+  created_at: string;
+  updated_at: string;
+}
 
 export default function CampaignsPages() {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     async function fetchCampaigns() {
       try {
-        const response = await fetch("http://localhost/campaigns");
-        if (!response.ok) throw new Error("Failed to fetch campaigns");
-        const result = await response.json();
-        setCampaigns(result.data);
+        const response = await api.get("http://localhost/api/campaigns");
+        setCampaigns(response.data);
+
       } catch (error) {
         console.error("Error fetching campaigns:", error);
+      } finally {
+        setLoading(false);
       }
     }
     fetchCampaigns();
   }, []);
+
+  if (loading) {
+    return <Spinner />;
+  }
 
   return (
     <div className="flex flex-1 flex-col">
