@@ -17,4 +17,18 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+const LARAVEL_URL = "http://localhost";
+
+export const getAvatarUrl = (avatarPath) => {
+  if (!avatarPath) {
+    return null;
+  }
+
+  if (avatarPath.startsWith('http')) {
+    return avatarPath;
+  }
+
+  return `${LARAVEL_URL}${avatarPath}`;
+};
+
 export default api;

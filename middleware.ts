@@ -24,6 +24,7 @@ export async function middleware(req: NextRequest) {
   }
 
   const token = req.cookies.get('treko_token')?.value
+  
   if (!token) {
     const loginUrl = req.nextUrl.clone()
     loginUrl.pathname = '/modules/auth/login'

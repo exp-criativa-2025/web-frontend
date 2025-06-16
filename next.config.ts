@@ -60,6 +60,10 @@ const nextConfig = {
         source: "/profile",
         destination: "/modules/base/profile",
       },
+      {
+        source: "/profile/:path*",
+        destination: "/modules/base/profile/:path*",
+      },
     ];
   },
 };
