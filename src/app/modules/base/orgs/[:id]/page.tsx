@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -34,6 +34,23 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import api from "@/lib/api";
 
+interface Campaign {
+  id: number;
+  name: string;
+  goal: number;
+  start_date: string;
+  end_date: string;
+  academic_entity_id: number;
+  created_at: string;
+  updated_at: string;
+  total_donations: number;
+  academic_entity: {
+    id: number;
+    type: string;
+    fantasy_name: string;
+  };
+}
+
 interface AcademicEntity {
   id: string;
   type: string;
@@ -60,6 +77,9 @@ export default function AcademicEntityDetailPage() {
   const [entity, setEntity] = useState<AcademicEntity | null>(null);
   const [loading, setLoading] = useState(true);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [campaign, setCampaign] = useState<Campaign | null>(null)
+
+  const router = useRouter()
 
   useEffect(() => {
     const mockEntity: AcademicEntity = {
@@ -70,8 +90,8 @@ export default function AcademicEntityDetailPage() {
       foundation_date: "2010-03-15",
       status: "Ativo",
       cep: "01234-567",
-      address: "Rua das Universidades, 123 - São Paulo, SP",
-      phone: "(11) 3456-7890",
+      address: "Rua Imaculada Conceição, 1155 - Curitiba - PR",
+      phone: "(41) 3456-7890",
       email: "contato@caengenharia.com.br",
       website: "https://caengenharia.com.br",
       facebook: "https://facebook.com/caengenharia",
@@ -86,7 +106,7 @@ export default function AcademicEntityDetailPage() {
     const fetchData = async () => {
       const res = await api.get('/academic-entities/1')
       const resolved = res.data
-      
+
       const newEntity: AcademicEntity = {
         ...mockEntity,
         fantasy_name: resolved.fantasy_name ?? mockEntity.fantasy_name,
@@ -111,13 +131,20 @@ export default function AcademicEntityDetailPage() {
 
       setEntity(newEntity);
     }
+    const getCampaigns = async () => {
+      const res = await api.get('/campaigns')
+      const campaigns = res.data as [Campaign]
+      setCampaign(campaigns[0])
+    }
 
     setTimeout(() => {
       setEntity(mockEntity);
       fetchData()
+      getCampaigns()
       setLoading(false);
     }, 1000);
   }, [params.id]);
+
 
   if (loading) {
     return (
@@ -140,15 +167,7 @@ export default function AcademicEntityDetailPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header with background image */}
       <div className="relative h-64 bg-gradient-to-r from-blue-600 to-purple-700">
-        <Image
-          src="/academic-header-bg.jpg"
-          alt="Header background"
-          fill
-          className="object-cover opacity-30"
-          priority
-        />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
 
         {/* Header content */}
@@ -169,7 +188,7 @@ export default function AcademicEntityDetailPage() {
                 </Badge>
                 <span className="flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
-                  São Paulo, SP
+                  Curitiba, PR
                 </span>
                 <span className="flex items-center gap-1">
                   <Calendar className="h-4 w-4" />
@@ -281,19 +300,50 @@ export default function AcademicEntityDetailPage() {
                     {[1, 2, 3].map((i) => (
                       <div key={i} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
                         <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <Heart className="h-6 w-6 text-blue-600" />
+                          <Heart className="h-6 w-6 "
+                            color={
+                              campaign && campaign.goal > 0 && Math.round((campaign.total_donations / campaign.goal) * 100) >= 100
+                                ? 'red'
+                                : ''
+
+                            }
+                            fill={
+                              campaign && campaign.goal > 0 && Math.round((campaign.total_donations / campaign.goal) * 100) >= 100
+                                ? 'red'
+                                : ''
+
+                            }
+
+                          />
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-semibold">Campanha de Doação {i}</h4>
+                          {/* <h4 className="font-semibold">Campanha de Doação {i}</h4> */}
+                          <h4 className="font-semibold">{campaign?.name}</h4>
                           <p className="text-sm text-gray-600">Ajuda para estudantes em situação de vulnerabilidade</p>
                           <div className="flex items-center gap-2 mt-2">
                             <div className="w-24 h-2 bg-gray-200 rounded-full">
-                              <div className="w-3/4 h-2 bg-green-500 rounded-full"></div>
+                              <div
+                                className="h-2 bg-green-500 rounded-full"
+                                style={{
+                                  width: campaign && campaign.goal > 0
+                                    ? `${Math.min(100, Math.round((campaign.total_donations / campaign.goal) * 100))}%`
+                                    : "0%"
+                                }}
+                              ></div>
                             </div>
-                            <span className="text-sm text-gray-600">75% da meta</span>
+                            {/* <span className="text-sm text-gray-600">75% da meta</span> */}
+                            <span className="text-sm text-gray-600">
+                              {campaign && campaign.goal > 0
+                                ? `${Math.min(100, Math.round((campaign.total_donations / campaign.goal) * 100))}% da meta`
+                                : "0% da meta"}
+                            </span>
+
                           </div>
                         </div>
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm"
+                          // change
+                          onClick={() => { router.push('/campaigns/1') }}
+                        >
                           Ver mais
                         </Button>
                       </div>
@@ -413,7 +463,10 @@ export default function AcademicEntityDetailPage() {
                 </CardHeader>
                 <CardContent className="space-y-3">
                   <Button className="w-full" size="sm">
-                    <Heart className="h-4 w-4 mr-2" />
+                    <Heart
+
+                      className={`h-4 w-4 mr-2 `}
+                    />
                     Fazer Doação
                   </Button>
                   <Button variant="outline" className="w-full" size="sm">

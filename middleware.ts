@@ -8,7 +8,7 @@ const PUBLIC_PATHS = [
   /^\/login$/,
   /^\/signup$/,
   /^\/$/,
-  /\.(.*)$/
+  // /\.(.*)$/
 ]
 
 export async function middleware(req: NextRequest) {
