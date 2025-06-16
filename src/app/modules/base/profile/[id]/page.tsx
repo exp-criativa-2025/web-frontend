@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -17,15 +17,27 @@ export default function ProfileViewPage() {
   const [loading, setLoading] = useState(true)
   const [userProfile, setUserProfile] = useState(null)
   const params = useParams()
+  const router = useRouter()
 
   useEffect(() => {
-    const userId = params.id
+    const viewedUserId = params.id
+    if (!viewedUserId) return
 
-    if (!userId) return
-
-    async function fetchUserProfile() {
+    async function checkAndFetchProfile() {
+      setLoading(true)
+      
       try {
-        const response = await api.get(`/users/${userId}`)
+        const meResponse = await api.get('/me')
+        if (Number(viewedUserId) === meResponse.data.id) {
+          router.push('/profile')
+          return
+        }
+      } catch (error) {
+        console.log("Usuário não logado, exibindo perfil público.")
+      }
+
+      try {
+        const response = await api.get(`/users/${viewedUserId}`)
         const data = response.data
 
         const userData = {
@@ -46,8 +58,8 @@ export default function ProfileViewPage() {
       }
     }
 
-    fetchUserProfile()
-  }, [params.id])
+    checkAndFetchProfile()
+  }, [params.id, router])
 
   if (loading) {
     return <div className="p-4 text-center">Carregando perfil...</div>

@@ -25,6 +25,7 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { UserActions } from "./user-actions";
 
 export interface User {
   id: number;
@@ -86,23 +87,13 @@ export function UsersDataTable({
       id: "actions",
       header: "Ações",
       cell: ({ row }) => (
-        <div className="flex gap-2 justify-center">
-          <a href={`/user/${row.original.id}`}>
-            <Button variant="default" size="sm">
-              Alterar
-            </Button>
-          </a>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => {
-              setUserToDelete(row.original);
-              setDialogOpen(true);
-            }}
-          >
-            Delete
-          </Button>
-        </div>
+        <UserActions
+          userId={row.original.id}
+          onDelete={() => {
+            setUserToDelete(row.original);
+            setDialogOpen(true);
+          }}
+        />
       ),
     },
   ];
@@ -201,7 +192,11 @@ export function UsersDataTable({
             <Button variant="outline" onClick={() => setDialogOpen(false)}>
               Cancelar
             </Button>
-            <Button variant="destructive" onClick={handleConfirmDelete} disabled={loading}>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={loading}
+            >
               Deletar
             </Button>
           </DialogFooter>
