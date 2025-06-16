@@ -4,6 +4,7 @@ import Image from 'next/image';
 import Button from '../../../../components/Button';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -20,28 +21,24 @@ export default function RegisterPage() {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost/api/register", {
-        method: "POST",
-        credentials: "include",
+      const response = await axios.post("http://localhost/api/register", {
+        name,
+        email,
+        password,
+        phone,
+      }, {
+        withCredentials: true,
         headers: {
           "Accept": "application/json",
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          name,
-          email,
-          password,
-          phone
-        }),
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Erro ao criar conta");
-      }
-
-      await response.json();
-      router.push("/modules/base/dashboards");
+      const token = response.data.data.token;
+      localStorage.setItem("auth_token", token);
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+;
+      router.push("/dashboards");
     } catch (err: any) {
       setError(err.message || "Erro ao fazer registro.");
     } finally {
