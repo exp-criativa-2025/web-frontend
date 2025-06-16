@@ -248,6 +248,11 @@ export function DataTable<
     }
   }
 
+  // Adicione este useEffect dentro do DataTable:
+  React.useEffect(() => {
+    setData(initialData);
+  }, [initialData]);
+
   return (
     <Tabs
       defaultValue="outline"
@@ -286,10 +291,10 @@ export function DataTable<
             </DropdownMenuContent>
           </DropdownMenu>
           {showNewButton && (
-              <Button size="sm" onClick={onNew} variant="default">
-                Novo
-              </Button>
-            )}
+            <Button size="sm" onClick={onNew} variant="default">
+              Novo
+            </Button>
+          )}
         </div>
       </div>
 
